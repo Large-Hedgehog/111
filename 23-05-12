@@ -1,0 +1,189 @@
+-- 05-12
+
+-- 실습 7-1
+
+SELECT mid('Please find the substring in this string', 17, 9);
+
+-- 실습 7-2
+SELECT ABS(-25.76823) AS 절댓값 , sign(-25.76823) AS 부호, round(-25.76823, 2) AS 반올림; 
+
+-- 실습 7-3
+SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP());
+
+
+-- limit(1), limist(1, 1)
+
+SELECT * FROM rental
+ORDER BY rental_id desc
+LIMIT 3;
+
+-- 처음부터 인덱스까지
+
+SELECT * FROM rental
+ORDER BY rental_id desc
+LIMIT 2, 3;
+
+-- limit (위치, 길이)
+
+
+-- 챕터 8 , 그룹화 
+
+-- join이용하여 가장 많이 빌린 사용자 이름
+SELECT a.customer_id, COUNT(1) cnt , a.first_name , a.last_name
+FROM customer a
+INNER JOIN rental b
+ON a.customer_id = b.customer_id
+GROUP BY a.customer_id
+ORDER BY COUNT(1) DESC
+LIMIT 1;
+
+
+-- 가장 적게 빌린 사람의 pk, 이름, 빌린 수
+
+SELECT B.customer_id, B.first_name, B.last_name, A.cnt
+FROM (
+	SELECT customer_id, COUNT(1) cnt
+	FROM rental
+	GROUP BY customer_id
+	ORDER BY COUNT(1)
+	LIMIT 1
+	) A
+INNER JOIN customer B
+ON A.customer_id = B.customer_id;
+
+
+-- 렌탈 횟수가 40회 이상인 사람들 pk, 이름, 성, 빌린 수
+
+SELECT B.customer_id, B.first_name, B.last_name, A.cnt
+FROM (
+	SELECT customer_id, COUNT(1) cnt
+	FROM rental
+	GROUP BY customer_id
+	HAVING COUNT(1) > 39
+	) A
+INNER JOIN customer B
+ON A.customer_id = B.customer_id
+ORDER BY A.cnt;
+
+
+-- 집계함수
+-- max, min, sum, count, sum
+
+SELECT customer_id, MAX(amount), MIN(amount), AVG(amount), SUM(amount)/COUNT(amount), COUNT(amount)
+FROM payment
+GROUP BY customer_id;
+
+SELECT COUNT(customer_id) , COUNT(DISTINCT customer_id)
+FROM payment;
+
+SELECT COUNT(1)
+FROM customer;
+
+SELECT *
+FROM rental
+WHERE return_date IS NULL;
+
+
+SELECT COUNT(*), COUNT(return_date), COUNT(1)
+FROM rental
+WHERE return_date IS NULL;
+
+SELECT max(DATEDIFF(return_date, rental_date))
+FROM rental;
+
+-- 제일 늦게 반납한 사람 정보 , pk, 이름, 성
+SELECT B.customer_id, B.first_name, B.last_name
+FROM (
+SELECT DISTINCT customer_id
+	FROM rental
+	WHERE DATEDIFF(return_date, rental_date) = 
+	(
+		SELECT MAX(DATEDIFF(return_date, rental_date))
+		FROM rental
+	) 
+)A
+INNER JOIN customer B
+ON A.customer_id = B.customer_id
+ORDER BY B.customer_id;
+
+
+-- 배우의 등급별 출연 횟수 
+SELECT A.actor_id, B.rating, COUNT(1) cnt
+FROM film_actor A
+INNER JOIN film B
+ON A.film_id = B.film_id
+GROUP BY A.actor_id, B.rating
+ORDER BY A.actor_id;
+
+
+-- 배우의 카테고리별 출연 횟수
+SELECT A.actor_id, C.category_id, C.name, COUNT(1) cnt
+FROM film_actor A
+INNER JOIN film_category B
+ON A.film_id = B.film_id
+INNER JOIN category C
+ON B.category_id = C.category_id
+GROUP BY A.actor_id, B.category_id
+ORDER BY A.actor_id;
+
+
+-- 배우의 카테고리별 출연 횟수 , 카테고리 / 배우 이름
+SELECT Y.actor_id, Y.category_id, Y.first_name, Y.last_name, X.category_id, X.name, Z.cnt
+FROM (
+	SELECT A.actor_id, C.category_id, COUNT(1) cnt
+	FROM film_actor A
+	INNER JOIN film_category C
+	ON A.film_id = C.film_id
+	GROUP BY A.actor_od;
+	)Z
+INNER JOIN actor Y
+ON Y.actor_id = Z.actor_id
+INNER;
+	
+
+
+-- 연도별 렌탈 횟수
+SELECT concat(year(rental_date), '년') `yy` ,  COUNT(1) cnt
+FROM rental
+GROUP BY `yy`
+;
+
+
+-- 롤업 생성
+
+SELECT fa.actor_id, f.rating, COUNT(1) cnt
+FROM film_actor fa
+INNER JOIN film f
+ON fa.film_id = f.film_id
+GROUP BY fa.actor_id, f.rating WITH ROLLUP;
+
+
+-- 배우의 등급별(G, PG) 출연횟수 궁금함, 출연횟수가 9초과인 actor_id
+SELECT A.actor_id, B.rating, COUNT(1) cnt
+FROM film_actor A
+INNER JOIN film B
+ON A.film_id = B.film_id
+WHERE B.rating = 'G' or B.rating = 'PG'
+GROUP BY A.actor_id, B.rating 
+HAVING cnt > 9
+ORDER BY cnt;
+
+
+-- 실습 8-1 , payment의 총 테이블 행
+SELECT COUNT(1)
+FROM payment;
+
+-- 실습 8-2 , 실습 8-1을 수정하여 각 고객의 지불 횟수 계산
+-- 고객 id, 고객이 지불한 총 금액 함께 표시
+SELECT customer_id ID, COUNT(customer_id) cnt, SUM(amount) money
+FROM payment 
+GROUP BY customer_id
+;
+
+-- 실습 8-3
+-- 적어도 40회 이상 결제한 고객만 포함하도록 실습 8-2의 쿼리 수정
+SELECT customer_id ID, COUNT(customer_id) cnt, SUM(amount) money
+FROM payment A
+GROUP BY customer_id
+HAVING cnt >= 40
+;
