@@ -1,24 +1,39 @@
-package com.green.board1;
+package com.green.first2.board;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/board")
 public class BoardController {
-    private final BoardService service;
-    @Autowired
-    public BoardController(BoardService service){
-        this.service = service;
+    @PostMapping("/board")
+    public String postBoard(BoardEntity entity){
+        System.out.println(entity);
+        return "글 등록 완료";
     }
 
-    @PostMapping
-    public int boardPost(@RequestBody BoardEntity entity){
+    @PostMapping(path = "/board2")
+    @CrossOrigin
+    public String postBoard2(@RequestBody BoardEntity entity){
         System.out.println(entity);
-        return service.insBoard(entity);
+        return "{\"result\":1}";
+    }
 
+    @GetMapping("/board")
+    public String getBoard(){
+        return "글 리스트 출력";
+    }
+
+    @GetMapping("/board/{iboard}")
+    public String getBoardDetail(@PathVariable int iboard){
+        return iboard + "글 디테일";
+    }
+
+    @PutMapping("/board")
+    public String putBoard(){
+        return "글 수정 완료";
+    }
+
+    @DeleteMapping("/board")
+    public String delBoard(){
+        return "글 삭제 완료";
     }
 }

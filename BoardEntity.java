@@ -1,13 +1,18 @@
-package com.green.board1;
+package com.green.first2.board;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+//@AllArgsConstructor
+//@NoArgsConstructor
+//@Builder
+@ToString
 public class BoardEntity {
+
     private int iboard;
     private String title;
     private String ctnt;
     private String writer;
-    private String createdAt;
-    private String updatedAt;
+
 }
